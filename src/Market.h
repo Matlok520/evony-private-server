@@ -4,107 +4,97 @@
 * Written by Daisy <daisy@spitfire.pw>, February 2018
 */
 
-#pragma once
+/* 
+ * This header file contains the declaration of the Market class along with its member functions and data structures.
+ * It is copyrighted by Daisy and unauthorized copying is strictly prohibited.
+ * Written by Daisy <daisy@spitfire.pw> in February 2018.
+ */
 
-#include "structs.h"
-#include <mutex>
+#pragma once // Ensures this header file is included only once during compilation
 
+#include "structs.h" // Include necessary external header file
 
-class spitfire;
+#include <mutex> // Include the mutex header for thread synchronization
+#include <memory> // Include the memory header for smart pointers
 
 class Market
 {
+private:
+    // Define a struct to hold various market entries for different resources
+    struct MarketEntries
+    {
+        std::list<stMarketEntry> foodBuy;
+        std::list<stMarketEntry> foodSell;
+        std::list<stMarketEntry> woodBuy;
+        std::list<stMarketEntry> woodSell;
+        std::list<stMarketEntry> stoneBuy;
+        std::list<stMarketEntry> stoneSell;
+        std::list<stMarketEntry> ironBuy;
+        std::list<stMarketEntry> ironSell;
+    };
+
+    // Mutexes for thread-safe access to market and cache data
+    std::mutex marketMutex;
+    std::mutex cacheMutex;
+
+    uint64_t tradeId; // Unique ID for trades
+
+    MarketEntries liveEntries; // Struct to hold live market entries
+    MarketEntries queueEntries; // Struct to hold queued market entries
+
+    // Struct to cache market data for optimization
+    struct MarketCache
+    {
+        std::list<stMarketEntry> foodBuy;
+        std::list<stMarketEntry> foodSell;
+        std::list<stMarketEntry> woodBuy;
+        std::list<stMarketEntry> woodSell;
+        std::list<stMarketEntry> stoneBuy;
+        std::list<stMarketEntry> stoneSell;
+        std::list<stMarketEntry> ironBuy;
+        std::list<stMarketEntry> ironSell;
+
+        uint64_t buyTime = 0;
+        uint64_t sellTime = 0;
+    } cache;
+
 public:
-    Market();
-    ~Market();
+    // Default constructor and destructor
+    Market() : tradeId(0) {}
+    ~Market() = default;
+
+    // Function prototypes for initializing market, recalculating cache, and processing market data
     bool init();
-    std::list<stMarketEntry> * getFoodBuy();
-    std::list<stMarketEntry> * getFoodSell();
-    std::list<stMarketEntry> * getWoodBuy();
-    std::list<stMarketEntry> * getWoodSell();
-    std::list<stMarketEntry> * getStoneBuy();
-    std::list<stMarketEntry> * getStoneSell();
-    std::list<stMarketEntry> * getIronBuy();
-    std::list<stMarketEntry> * getIronSell();
     void recalculateCache();
     void Process();
 
-    static bool compareprice(stMarketEntry & first, stMarketEntry & second)
-    {
-        if (first.price > second.price)
-        {
-            if (first.time < second.time)
-                return true;
-            else
-                return false;
-        }
-        else
-            return false;
-    }
+    // Static functions for comparing market entry prices
+    static bool comparePrice(const stMarketEntry& first, const stMarketEntry& second);
+    static bool rcomparePrice(const stMarketEntry& first, const stMarketEntry& second);
 
-    static bool rcompareprice(stMarketEntry & first, stMarketEntry & second)
-    {
-        if (first.price < second.price)
-        {
-            if (first.time > second.time)
-                return true;
-            else
-                return false;
-        }
-        else
-            return false;
-    }
+    // Functions to add buy/sell entries for each resource type
+    bool addFoodBuy(const stMarketEntry& entry);
+    bool addFoodSell(const stMarketEntry& entry);
+    bool addWoodBuy(const stMarketEntry& entry);
+    bool addWoodSell(const stMarketEntry& entry);
+    bool addStoneBuy(const stMarketEntry& entry);
+    bool addStoneSell(const stMarketEntry& entry);
+    bool addIronBuy(const stMarketEntry& entry);
+    bool addIronSell(const stMarketEntry& entry);
 
-    bool addFoodBuy(stMarketEntry entry);
-    bool addFoodSell(stMarketEntry entry);
-    bool addWoodBuy(stMarketEntry entry);
-    bool addWoodSell(stMarketEntry entry);
-    bool addStoneBuy(stMarketEntry entry);
-    bool addStoneSell(stMarketEntry entry);
-    bool addIronBuy(stMarketEntry entry);
-    bool addIronSell(stMarketEntry entry);
+    // Functions to retrieve buy/sell entries for each resource type
+    std::list<stMarketEntry>& getFoodBuy();
+    std::list<stMarketEntry>& getFoodSell();
+    std::list<stMarketEntry>& getWoodBuy();
+    std::list<stMarketEntry>& getWoodSell();
+    std::list<stMarketEntry>& getStoneBuy();
+    std::list<stMarketEntry>& getStoneSell();
+    std::list<stMarketEntry>& getIronBuy();
+    std::list<stMarketEntry>& getIronSell();
 
 private:
-
-    std::mutex m;
-    std::mutex mcache;
-
-    uint64_t tradeid;
-
-    struct EntryList
-    {
-        std::list<stMarketEntry> foodbuy;
-        std::list<stMarketEntry> foodsell;
-
-        std::list<stMarketEntry> woodbuy;
-        std::list<stMarketEntry> woodsell;
-
-        std::list<stMarketEntry> ironbuy;
-        std::list<stMarketEntry> ironsell;
-
-        std::list<stMarketEntry> stonebuy;
-        std::list<stMarketEntry> stonesell;
-    };
-
-    EntryList live;
-    EntryList queue_;
-
-public:
-    struct
-    {
-        std::list<stMarketEntry> foodbuy;
-        std::list<stMarketEntry> foodsell;
-
-        std::list<stMarketEntry> woodbuy;
-        std::list<stMarketEntry> woodsell;
-
-        std::list<stMarketEntry> ironbuy;
-        std::list<stMarketEntry> ironsell;
-
-        std::list<stMarketEntry> stonebuy;
-        std::list<stMarketEntry> stonesell;
-
-        uint64_t buytime;
-        uint64_t selltime;
-    } cache;
+    // Private function to update the market cache
+    void updateCache();
 };
+```
+```
